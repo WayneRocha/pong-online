@@ -1,6 +1,5 @@
 const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
-
 const whiteScreen = {
     width: canvas.width,
     height: canvas.height,
@@ -49,22 +48,35 @@ const startScreen = {
 }
 const gameScreen = {
     player1: {
-        positionX: (canvas.width / 12) - (20 / 2),
+        positionX: canvas.width / 1.1,
         positionY: (canvas.height / 2) - (60 / 2),
         width: 20,
         height: 60
     },
     player2: {
-        positionX: (canvas.width / 1.1),
+        positionX: (canvas.width / 12) - (20 / 2),
         positionY: (canvas.height / 2) - (60 / 2),
         width: 20,
-        height: 60
+        height: 60,
+        bot(){
+            let errorChance = Math.random() * 20;
+            let errorMargin = ((30 + errorChance) / 100) * gameScreen.ball.positionY
+            if ((this.positionY + 60) >= gameScreen.ball.positionY + errorMargin){
+                gameScreen.playerMoviment(this, true, false);
+            } else if ((this.positionY) <= gameScreen.ball.positionY - errorMargin){
+                gameScreen.playerMoviment(this, false, true);
+            }
+        }
     },
     ball: {
         positionX: (canvas.width / 2) - 20,
         positionY: (canvas.height / 2) - 20,
-        width: 20,
-        height: 20
+        width: 15,
+        height: 15
+    },
+    physics:{
+        playersVelocity: 10,
+        ballVelocity: 20
     },
     draw(){
         context.fillStyle = 'black';
@@ -89,42 +101,81 @@ const gameScreen = {
             this.ball.positionY,
             this.ball.width,
             this.ball.height);   
+    },
+    playerMoviment(player, up, down){
+        if (up){
+            if (player.positionY > 0){
+                player.positionY -= this.physics.playersVelocity;
+            }
+        } else if(down) {
+            if ((player.positionY + player.height) < canvas.height){
+                player.positionY += this.physics.playersVelocity;
+            }
+        }
     }
+}
+let currentScreen = startScreen;
+const keyPressed = {
+    key: undefined
+}
+const gameMod = {
+    'single-player': true,
+    'multiplayer': false,
+    'multiplayer-online': false
 }
 function gameLoop(){
     whiteScreen.draw();
     currentScreen.draw();
+    if (gameMod["single-player"]){
+        if (keyPressed.key == 13){
+            currentScreen = gameScreen;
+        }
+        else if (keyPressed.key == 38 || keyPressed.key == 87){
+            gameScreen.playerMoviment(gameScreen.player1, true, false);
+        }
+        else if (keyPressed.key == 40 || keyPressed.key == 83){
+            gameScreen.playerMoviment(gameScreen.player1, false, true);
+        }
+        else if (keyPressed.key == 27){
+            currentScreen = startScreen;
+        }
+        keyPressed.key = undefined;
+        gameScreen.player2.bot();
+    } else if (gameMod["multiplayer"]){
+        switch (keyPressed.key){
+            case 13:
+                currentScreen = gameScreen;
+                break;
+            case 38:
+                gameScreen.playerMoviment(gameScreen.player1, true, false);
+                break;
+            case 40:
+                gameScreen.playerMoviment(gameScreen.player1, false, true);
+                break;
+            case 87:
+                gameScreen.playerMoviment(gameScreen.player2, true, false);
+                break;
+            case 83:
+                gameScreen.playerMoviment(gameScreen.player2, false, true);
+                break;
+            case 27:
+                currentScreen = startScreen;
+                break;
+        }
+        keyPressed.key = undefined;
+    } else if (gameMod["multiplayer-online"]){
+        //other keyboards commands
+    }
+    
 }
 
-var currentScreen = startScreen;
-setInterval(() => gameLoop(), 16);
-window.addEventListener('keydown', keyboard);
+
+window.addEventListener('keydown', function(e){
+    keyPressed.key = e.keyCode;
+}, true);
+setInterval(() => gameLoop(), 10);
 flashyText();
 
-function keyboard(e){
-    switch (e.keyCode){
-        case 13:
-            console.log('enter');
-            currentScreen = gameScreen;
-            break;
-        case 38:
-            console.log('seta - cima');
-            break;
-        case 40:
-            console.log('seta - baixo');
-            break;
-        case 87:
-            console.log('W - cima');
-            break;
-        case 83:
-            console.log('S - baixo');
-            break;
-        case 27:
-            currentScreen = startScreen;
-            console.log('sair');
-            break;
-    }
-}
 function flashyText(){
     let count = 10;
     timer = setInterval(function(){
