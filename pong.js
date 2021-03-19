@@ -59,7 +59,7 @@ const gameScreen = {
         width: 15,
         height: 60,
         bot() {
-            let errorChance = Math.floor(Math.random() * 20);
+            let errorChance = Math.floor(Math.random() * 40);
             let errorMargin = ((30 + errorChance) / 100) * gameScreen.ball.positionY
             if ((this.positionY + 60) >= gameScreen.ball.positionY + errorMargin) {
                 gameScreen.playerMoviment(this, true, false);
@@ -80,8 +80,8 @@ const gameScreen = {
     },
     physics: {
         playersVelocityY: 20,
-        ballVelocityX: 5,
-        ballVelocityY: 0.3,
+        ballVelocityX: 4,
+        ballVelocityY: 0,
     },
     scoreBoard: {
         pontuation: {
@@ -182,10 +182,11 @@ const gameScreen = {
 
         if (player1Colision) {
             this.physics.ballVelocityX *= -1;
+            hitFactor();
         } else if (player2Colision) {
             this.physics.ballVelocityX = Math.abs(this.physics.ballVelocityX);
+            hitFactor();
         }
-        //hitFactor();
         if (buttomColision) {
             this.physics.ballVelocityY *= -1;
         } else if (topColision) {
@@ -198,7 +199,17 @@ const gameScreen = {
 
         }
         function hitFactor() {
-
+            let racketColision = parseFloat((gameScreen.ball.positionY - gameScreen.player1.positionY) / gameScreen.player1.height).toFixed(1);
+            console.log(racketColision);
+            if (racketColision > 0.5){
+                gameScreen.physics.ballVelocityY = Math.abs(gameScreen.physics.ballVelocityY);
+                gameScreen.physics.ballVelocityY = 4;
+            } else if (racketColision < 0.5 && racketColision > 0){
+                gameScreen.physics.ballVelocityY = 0;
+            } else {
+                gameScreen.physics.ballVelocityY *= -1;
+                gameScreen.physics.ballVelocityY = -4;
+            }
         }
     },
     drawScoreBoard() {
@@ -303,5 +314,3 @@ window.addEventListener('keydown', (e) => keyPressed.key = e.keyCode, true);
 ruffleBallInitialDirection();
 setInterval(() => gameLoop(), 10);
 flashyText();
-
-
