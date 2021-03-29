@@ -199,7 +199,7 @@ const gameScreen = {
 
         }
         function hitFactor() {
-            let racketColision = parseFloat((gameScreen.ball.positionY - gameScreen.player1.positionY) / gameScreen.player1.height).toFixed(1);
+            let racketColision = parseFloat(((gameScreen.ball.positionY + gameScreen.ball.height / 2) - gameScreen.player1.positionY) / gameScreen.player1.height).toFixed(1);
             console.log(racketColision);
             if (racketColision > 0.5){
                 gameScreen.physics.ballVelocityY = Math.abs(gameScreen.physics.ballVelocityY);
@@ -293,6 +293,7 @@ function gameLoop() {
             if (keyPressed.key == 13) currentScreen = gameScreen;
         }
     }
+    requestAnimationFrame(gameLoop);
 }
 function flashyText() {
     let count = 0;
@@ -309,8 +310,7 @@ function flashyText() {
 function ruffleBallInitialDirection() {
     Math.floor(Math.random() * 2) ? gameScreen.physics.ballVelocityX *= -1 : gameScreen.physics.ballVelocityX = Math.abs(gameScreen.physics.ballVelocityX);
 };
-
 window.addEventListener('keydown', (e) => keyPressed.key = e.keyCode, true);
+gameLoop();
 ruffleBallInitialDirection();
-setInterval(() => gameLoop(), 10);
 flashyText();
