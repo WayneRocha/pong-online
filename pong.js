@@ -84,7 +84,6 @@ const gameScreen = {
         pontuationDetection() {
             let player1Point = gameScreen.ball.x + gameScreen.ball.scale < gameScreen.player2.x;
             let player2Point = gameScreen.ball.x > gameScreen.player1.x + gameScreen.player1.width;
-
             if (player1Point) {
                 resetPlayersPositions();
                 player1Turn();
@@ -146,8 +145,12 @@ const gameScreen = {
         context.fillRect(this.ball.x, this.ball.y, this.ball.scale, this.ball.scale);
     },
     movePlayer(player, direction) {
-        if (direction == 'up' && player.y > 0) player.y -= physics.playersVelocityY;
-        else if (direction == 'down' && (player.y + player.height) < canvas.height) player.y += physics.playersVelocityY;
+        if (direction == 'up' && player.y > 0) {
+            player.y -= physics.playersVelocityY;
+        } 
+        else if (direction == 'down' && (player.y + player.height) < canvas.height) {
+            player.y += physics.playersVelocityY;
+        }
     },
     moveBall() {
         let player1Colision = ((this.ball.x + this.ball.scale) >= this.player1.x) &&
@@ -166,8 +169,11 @@ const gameScreen = {
             physics.ballVelocityX = Math.abs(physics.ballVelocityX);
             hitFactor();
         }
-        if (buttomColision) physics.ballVelocityY *= -1;
-        else if (topColision) physics.ballVelocityY = Math.abs(physics.ballVelocityY);
+        if (buttomColision) {
+            physics.ballVelocityY *= -1;
+        } else if (topColision) {
+            physics.ballVelocityY = Math.abs(physics.ballVelocityY);
+        }
         this.ball.x += physics.ballVelocityX;
         this.ball.y += physics.ballVelocityY;
 
@@ -192,7 +198,8 @@ const gameOverScreen = {
         context.textAlign = 'center';
         context.font = 'bold 50px monospace';
         context.fillText(gameScreen.pontuation.winnerPlayer, canvas.width / 2, canvas.height - 175);
-        if (this.drawExitButton){
+        if (this.drawExitButton) {
+            context.fillStyle = this.buttonColor;
             context.font = 'bold 40px monospace';
             context.fillText('VOLTAR', canvas.width / 2, canvas.height - 50);
         } else {
@@ -249,12 +256,18 @@ function keyBoardHandler(event) {
             gameScreen.movePlayer(gameScreen.player1, 'down');
         },
         W() {
-            if (gameMod["multiplayer"]) gameScreen.movePlayer(gameScreen.player2, 'up');
-            else gameScreen.movePlayer(gameScreen.player1, 'up');
+            if (gameMod["multiplayer"]) {
+                gameScreen.movePlayer(gameScreen.player2, 'up');
+            } else {
+                gameScreen.movePlayer(gameScreen.player1, 'up');
+            }
         },
         S() {
-            if (gameMod["multiplayer"]) gameScreen.movePlayer(gameScreen.player2, 'down');
-            else gameScreen.movePlayer(gameScreen.player1, 'down');
+            if (gameMod["multiplayer"]) {
+                gameScreen.movePlayer(gameScreen.player2, 'down');
+            } else {
+                gameScreen.movePlayer(gameScreen.player1, 'down');
+            } 
         },
         ENTER() {
             currentScreen = gameScreen;
@@ -263,7 +276,7 @@ function keyBoardHandler(event) {
             currentScreen = startScreen;
             restartGame();
         }
-    }
+    };
     if (acceptedKeys[event.key.toUpperCase()]) {
         let actionFunction = acceptedKeys[event.key.toUpperCase()];
         actionFunction();
@@ -271,11 +284,12 @@ function keyBoardHandler(event) {
 }
 function touchHandler(event){
     console.log(event);
-    currentScreen = gameScreen;
+    
+    /* currentScreen = gameScreen;
     if (currentScreen == gameOverScreen){
         restartGame();
         currentScreen = startScreen;
-    }
+    } */
 }
 function restartGame() {
     physics.playersVelocityY = 20;
@@ -311,7 +325,6 @@ if (window.matchMedia('(pointer: coarse)').matches) {
     }
 } else {
     window.addEventListener('keydown', keyBoardHandler);
-    window.addEventListener('keypress', keyBoardHandler);
 }
 gameLoop();
 ruffleBallInitialDirection();
