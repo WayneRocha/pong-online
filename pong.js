@@ -1,6 +1,5 @@
 const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
-const keyPressed = 
 const gameMod = {
     'single-player': true,
     'multiplayer': false,
@@ -174,11 +173,10 @@ const gameScreen = {
 
         function hitFactor() {
             let racketColision = parseFloat(((gameScreen.ball.y + gameScreen.ball.scale / 2) - gameScreen.player1.y) / gameScreen.player1.height).toFixed(1);
-            console.log(racketColision);
             if (racketColision > 0.5) {
                 physics.ballVelocityY = Math.floor(Math.random() * (7.7 - 1.1) + 1.1);
             } else if (racketColision < 0.5 && racketColision > 0) {
-                physics.ballVelocityY = Math.floor(Math.random() * 0.5) - 0.5;
+                physics.ballVelocityY = Math.floor(Math.random() * (0.5 - (-0.5)) + (-0.5));
             } else {
                 physics.ballVelocityY = Math.floor(Math.random() * ((-7.7) - (-1.1)) + 1.1);
             }
@@ -313,6 +311,7 @@ if (window.matchMedia('(pointer: coarse)').matches) {
     }
 } else {
     window.addEventListener('keydown', keyBoardHandler);
+    window.addEventListener('keypress', keyBoardHandler);
 }
 gameLoop();
 ruffleBallInitialDirection();
