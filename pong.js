@@ -1,127 +1,121 @@
 const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
-const whiteScreen = {
-    width: canvas.width,
-    height: canvas.height,
-    color: 'white',
-    draw() {
-        context.fillStyle = this.color;
-        context.fillRect(0, 0, this.width, this.height);
-    }
+const keyPressed = 
+const gameMod = {
+    'single-player': true,
+    'multiplayer': false,
+};
+const physics = {
+    playersVelocityY: 20,
+    ballVelocityX: 5,
+    ballVelocityY: 0,
 };
 const startScreen = {
     title: {
-        positionX: (canvas.width / 2),
-        positionY: (canvas.height / 4),
+        x: (canvas.width / 2),
+        y: (canvas.height / 4),
         text: 'PONG',
         fontStyle: 'bold 50px monospace'
     },
-    option: {
-        positionX: (canvas.width / 2),
-        positionY: (canvas.height / 1.5),
+    options: {
+        x: (canvas.width / 2),
+        y: (canvas.height / 1.5),
         text: 'single player',
         fontStyle: '30px monospace',
         letterColor: 'black'
     },
     instruction: {
-        positionX: (canvas.width / 2),
-        positionY: (canvas.height / 1.1),
+        x: (canvas.width / 2),
+        y: (canvas.height / 1.1),
         text: 'press ENTER',
-        fontStyle: '15px monospace'
+        fontStyle: '20px monospace'
     },
     draw() {
         context.textAlign = 'center';
         context.fillStyle = 'black';
         drawTexts(this.title);
         drawTexts(this.instruction);
-        context.fillStyle = this.option.letterColor;
-        drawTexts(this.option);
+        context.fillStyle = this.options.letterColor;
+        drawTexts(this.options);
 
         function drawTexts(textObject) {
             context.font = textObject.fontStyle
-            context.fillText(
-                textObject.text,
-                textObject.positionX,
-                textObject.positionY);
+            context.fillText(textObject.text, textObject.x, textObject.y);
         }
     }
-}
+};
 const gameScreen = {
     player1: {
-        positionX: canvas.width / 1.1,
-        positionY: (canvas.height / 2) - (60 / 2),
+        x: canvas.width / 1.1,
+        y: (canvas.height / 2) - (60 / 2),
         width: 15,
         height: 60
     },
     player2: {
-        positionX: (canvas.width / 12) - (20 / 2),
-        positionY: (canvas.height / 2) - (60 / 2),
+        x: (canvas.width / 12) - (20 / 2),
+        y: (canvas.height / 2) - (60 / 2),
         width: 15,
         height: 60,
-        bot() {
-            let errorChance = Math.floor(Math.random() * 40);
-            let errorMargin = ((30 + errorChance) / 100) * gameScreen.ball.positionY
-            if ((this.positionY + 60) >= gameScreen.ball.positionY + errorMargin) {
-                gameScreen.playerMoviment(this, true, false);
-            } else if ((this.positionY) <= gameScreen.ball.positionY - errorMargin) {
-                gameScreen.playerMoviment(this, false, true);
+        botPlayer() {
+            let hitChange = 20;
+            if (this.y > gameScreen.ball.y) {
+                if (Math.floor(Math.random() * 101) + hitChange >= 100){
+                    gameScreen.movePlayer(this, 'up');
+                }
+            } else if (this.y + this.height < gameScreen.ball.y) {
+                if (Math.floor(Math.random() * 100) + hitChange >= 100){
+                    gameScreen.movePlayer(this, 'down');
+                }
             }
         }
     },
     ball: {
-        positionX: (canvas.width / 2) - 15,
-        positionY: (canvas.height / 2) - 15,
-        width: 15,
-        height: 15,
+        x: (canvas.width / 2) - 15,
+        y: (canvas.height / 2) - 15,
+        scale: 15,
         setBallToDefault() {
-            this.positionX = (canvas.width / 2) - this.width;
-            this.positionY = (canvas.height / 2) - this.height;
+            this.x = (canvas.width / 2) - this.scale;
+            this.y = (canvas.height / 2) - this.scale;
         }
     },
-    physics: {
-        playersVelocityY: 20,
-        ballVelocityX: 4,
-        ballVelocityY: 0,
-    },
-    scoreBoard: {
-        pontuation: {
-            player1: 0,
-            player2: 0,
-            winnerPlayer: ''
-        },
+    pontuation: {
+        player1: 0,
+        player2: 0,
+        winnerPlayer: '',
         pontuationDetection() {
-            let player1Point = gameScreen.ball.positionX + gameScreen.ball.width < gameScreen.player2.positionX;
-            let player2Point = gameScreen.ball.positionX > gameScreen.player1.positionX + gameScreen.player1.width;
+            let player1Point = gameScreen.ball.x + gameScreen.ball.scale < gameScreen.player2.x;
+            let player2Point = gameScreen.ball.x > gameScreen.player1.x + gameScreen.player1.width;
 
             if (player1Point) {
                 resetPlayersPositions();
                 player1Turn();
-                gameScreen.scoreBoard.pontuation.player1 += 1;
+                this.player1 += 1;
                 gameScreen.ball.setBallToDefault();
             } else if (player2Point) {
                 resetPlayersPositions();
                 player2Turn();
-                gameScreen.scoreBoard.pontuation.player2 += 1;
+                this.player2 += 1;
                 gameScreen.ball.setBallToDefault();
             }
-            if (this.pontuation.player1 >= 10) {
+            if (this.player1 >= 10) {
                 currentScreen = gameOverScreen;
-                this.pontuation.winnerPlayer = 'YOU WIN!';
+                this.winnerPlayer = 'VOCÊ GANHOU!';
             }
-            else if (this.pontuation.player2 >= 10) {
+            else if (this.player2 >= 10) {
                 currentScreen = gameOverScreen;
-                this.pontuation.winnerPlayer = 'YOU LOSE!';
+                this.winnerPlayer = 'VOCÊ PERDEU!';
             }
-
             function player1Turn() {
-                gameScreen.physics.ballVelocityX *= -1;
+                physics.ballVelocityX *= -1;
+                physics.ballVelocityY = 0;
             }
             function player2Turn() {
-                gameScreen.physics.ballVelocityX = Math.abs(gameScreen.physics.ballVelocityX);
+                physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+                physics.ballVelocityY = 0;
             }
-            function resetPlayersPositions(){
-                gameScreen.player1.positionY = (canvas.height / 2) - (60 / 2);
-                gameScreen.player2.positionY = (canvas.height / 2) - (60 / 2);
+            function resetPlayersPositions() {
+                gameScreen.player1.y = (canvas.height / 2) - (60 / 2);
+                gameScreen.player2.y = (canvas.height / 2) - (60 / 2);
             }
         }
     },
@@ -141,157 +135,93 @@ const gameScreen = {
         }
     },
     drawPlayers() {
-        context.fillRect(
-            this.player1.positionX,
-            this.player1.positionY,
-            this.player1.width,
-            this.player1.height);
-        context.fillRect(
-            this.player2.positionX,
-            this.player2.positionY,
-            this.player2.width,
-            this.player2.height);
-    },
-    playerMoviment(player, up, down) {
-        if (up) {
-            if (player.positionY > 0) {
-                player.positionY -= this.physics.playersVelocityY;
-            }
-        } else if (down) {
-            if ((player.positionY + player.height) < canvas.height) {
-                player.positionY += this.physics.playersVelocityY;
-            }
-        }
-    },
-    drawBall() {
-        context.fillRect(
-            this.ball.positionX,
-            this.ball.positionY,
-            this.ball.width,
-            this.ball.height);
-    },
-    ballMoviment() {
-        let player1Colision = ((this.ball.positionX + this.ball.width) >= this.player1.positionX) &&
-            ((this.ball.positionY + this.ball.height) >= this.player1.positionY &&
-                (this.ball.positionY) <= (this.player1.positionY + this.player1.height));
-        let player2Colision = (this.ball.positionX <= (this.player2.positionX + this.player2.width) &&
-            (this.ball.positionY + this.ball.height) >= this.player2.positionY &&
-            this.ball.positionY <= (this.player2.positionY + this.player2.height));
-        let buttomColision = (this.ball.positionY + this.ball.height) >= canvas.height;
-        let topColision = this.ball.positionY <= 0;
-
-        if (player1Colision) {
-            this.physics.ballVelocityX *= -1;
-            hitFactor();
-        } else if (player2Colision) {
-            this.physics.ballVelocityX = Math.abs(this.physics.ballVelocityX);
-            hitFactor();
-        }
-        if (buttomColision) {
-            this.physics.ballVelocityY *= -1;
-        } else if (topColision) {
-            this.physics.ballVelocityY = Math.abs(this.physics.ballVelocityY);
-        }
-        this.ball.positionX += this.physics.ballVelocityX;
-        this.ball.positionY += this.physics.ballVelocityY;
-
-        function ruffleBallVelocityY() {
-
-        }
-        function hitFactor() {
-            let racketColision = parseFloat(((gameScreen.ball.positionY + gameScreen.ball.height / 2) - gameScreen.player1.positionY) / gameScreen.player1.height).toFixed(1);
-            console.log(racketColision);
-            if (racketColision > 0.5){
-                gameScreen.physics.ballVelocityY = Math.abs(gameScreen.physics.ballVelocityY);
-                gameScreen.physics.ballVelocityY = 4;
-            } else if (racketColision < 0.5 && racketColision > 0){
-                gameScreen.physics.ballVelocityY = 0;
-            } else {
-                gameScreen.physics.ballVelocityY *= -1;
-                gameScreen.physics.ballVelocityY = -4;
-            }
-        }
+        context.fillRect(this.player1.x, this.player1.y, this.player1.width, this.player1.height);
+        context.fillRect(this.player2.x, this.player2.y, this.player2.width, this.player2.height);
     },
     drawScoreBoard() {
         context.font = '50px monospace';
-        context.fillText(
-            this.scoreBoard.pontuation.player1,
-            canvas.width / 1.5,
-            50);
-        context.fillText(
-            this.scoreBoard.pontuation.player2,
-            canvas.width / 3,
-            50);
-    }
-}
-const gameOverScreen = {
-    draw(){
-        context.textAlign = 'center';
-        context.fillText(gameScreen.scoreBoard.pontuation.winnerPlayer, 0, canvas.height / 2);
-        context.fillText('press ESC to return', canvas.width / 1.5, canvas.height - 50);
-    }
-}
-let currentScreen = startScreen;
-const keyPressed = {
-    key: undefined
-}
-const gameMod = {
-    'single-player': true,
-    'multiplayer': false,
-    'multiplayer-online': false
-}
-function gameLoop() {
-    whiteScreen.draw();
-    currentScreen.draw();
-    if (currentScreen == gameScreen) {
-        gameScreen.ballMoviment();
-        gameScreen.scoreBoard.pontuationDetection();
-    }
-    if (currentScreen == gameOverScreen){
-        gameOverScreen.draw();
-    }
-    keyController();
+        context.fillText(this.pontuation.player1, canvas.width / 1.5, 50);
+        context.fillText(this.pontuation.player2, canvas.width / 3, 50);
+    },
+    drawBall() {
+        context.fillRect(this.ball.x, this.ball.y, this.ball.scale, this.ball.scale);
+    },
+    movePlayer(player, direction) {
+        if (direction == 'up' && player.y > 0) player.y -= physics.playersVelocityY;
+        else if (direction == 'down' && (player.y + player.height) < canvas.height) player.y += physics.playersVelocityY;
+    },
+    moveBall() {
+        let player1Colision = ((this.ball.x + this.ball.scale) >= this.player1.x) &&
+            ((this.ball.y + this.ball.scale) >= this.player1.y &&
+                (this.ball.y) <= (this.player1.y + this.player1.height));
+        let player2Colision = (this.ball.x <= (this.player2.x + this.player2.width) &&
+            (this.ball.y + this.ball.scale) >= this.player2.y &&
+                this.ball.y <= (this.player2.y + this.player2.height));
+        let buttomColision = (this.ball.y + this.ball.scale) >= canvas.height;
+        let topColision = this.ball.y <= 0;
 
-    function keyController() {
-        if (currentScreen == gameScreen) {
-            if (gameMod["single-player"]) {
-                if (keyPressed.key == 38 || keyPressed.key == 87) {
-                    gameScreen.playerMoviment(gameScreen.player1, true, false);
-                }
-                else if (keyPressed.key == 40 || keyPressed.key == 83) {
-                    gameScreen.playerMoviment(gameScreen.player1, false, true);
-                }
-                else if (keyPressed.key == 27) {
-                    currentScreen = startScreen;
-                }
-                keyPressed.key = undefined;
-                gameScreen.player2.bot();
-            } else if (gameMod["multiplayer"]) {
-                switch (keyPressed.key) {
-                    case 38:
-                        gameScreen.playerMoviment(gameScreen.player1, true, false);
-                        break;
-                    case 40:
-                        gameScreen.playerMoviment(gameScreen.player1, false, true);
-                        break;
-                    case 87:
-                        gameScreen.playerMoviment(gameScreen.player2, true, false);
-                        break;
-                    case 83:
-                        gameScreen.playerMoviment(gameScreen.player2, false, true);
-                        break;
-                    case 27:
-                        currentScreen = startScreen;
-                        break;
-                }
-                keyPressed.key = undefined;
-            } else if (gameMod["multiplayer-online"]) {
-                //other keyboards commands
+        if (player1Colision) {
+            physics.ballVelocityX *= -1;
+            hitFactor();
+        } else if (player2Colision) {
+            physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+            hitFactor();
+        }
+        if (buttomColision) physics.ballVelocityY *= -1;
+        else if (topColision) physics.ballVelocityY = Math.abs(physics.ballVelocityY);
+        this.ball.x += physics.ballVelocityX;
+        this.ball.y += physics.ballVelocityY;
+
+        function hitFactor() {
+            let racketColision = parseFloat(((gameScreen.ball.y + gameScreen.ball.scale / 2) - gameScreen.player1.y) / gameScreen.player1.height).toFixed(1);
+            console.log(racketColision);
+            if (racketColision > 0.5) {
+                physics.ballVelocityY = Math.floor(Math.random() * (7.7 - 1.1) + 1.1);
+            } else if (racketColision < 0.5 && racketColision > 0) {
+                physics.ballVelocityY = Math.floor(Math.random() * 0.5) - 0.5;
+            } else {
+                physics.ballVelocityY = Math.floor(Math.random() * ((-7.7) - (-1.1)) + 1.1);
             }
         }
-        else if (currentScreen == startScreen) {
-            if (keyPressed.key == 13) currentScreen = gameScreen;
+    }
+};
+const gameOverScreen = {
+    returnInstruction: 'tecle ESC para voltar',
+    drawExitButton: false,
+    buttonColor: 'black',
+    draw() {
+        context.fillStyle = 'black';
+        context.textAlign = 'center';
+        context.font = 'bold 50px monospace';
+        context.fillText(gameScreen.pontuation.winnerPlayer, canvas.width / 2, canvas.height - 175);
+        if (this.drawExitButton){
+            context.font = 'bold 40px monospace';
+            context.fillText('VOLTAR', canvas.width / 2, canvas.height - 50);
+        } else {
+            context.font = 'bold 15px monospace';
+            context.fillText(this.returnInstruction, canvas.width / 2, canvas.height - 50);
         }
+    }
+};
+var currentScreen = startScreen;
+function gameLoop() {
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    currentScreen.draw();
+
+    if (currentScreen == gameScreen) {
+        document.querySelector('body').style.overflowY = 'hidden';
+        gameScreen.moveBall();
+        gameScreen.pontuation.pontuationDetection();
+        if (gameMod["single-player"]){
+            gameScreen.player2.botPlayer();
+        }
+    }
+    else if (currentScreen == gameOverScreen) {
+        gameOverScreen.draw();
+    }
+    else {
+        document.querySelector('body').style.overflowY = 'auto';
     }
     requestAnimationFrame(gameLoop);
 }
@@ -300,17 +230,90 @@ function flashyText() {
     let timer = setInterval(function () {
         count++;
         if (count % 2 === 1) {
-            startScreen.option.letterColor = 'white';
+            startScreen.options.letterColor = 'white';
+            gameOverScreen.buttonColor = 'white';
         } else {
-            startScreen.option.letterColor = 'black';
+            startScreen.options.letterColor = 'black';
+            gameOverScreen.buttonColor = 'black';
         }
         if (currentScreen == gameScreen) clearInterval(timer);
     }, 500);
 }
 function ruffleBallInitialDirection() {
-    Math.floor(Math.random() * 2) ? gameScreen.physics.ballVelocityX *= -1 : gameScreen.physics.ballVelocityX = Math.abs(gameScreen.physics.ballVelocityX);
-};
-window.addEventListener('keydown', (e) => keyPressed.key = e.keyCode, true);
+    Math.floor(Math.random() * 2) ? physics.ballVelocityX *= -1 : physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+}
+function keyBoardHandler(event) {
+    const acceptedKeys = {
+        ARROWUP() {
+            gameScreen.movePlayer(gameScreen.player1, 'up');
+        },
+        ARROWDOWN() {
+            gameScreen.movePlayer(gameScreen.player1, 'down');
+        },
+        W() {
+            if (gameMod["multiplayer"]) gameScreen.movePlayer(gameScreen.player2, 'up');
+            else gameScreen.movePlayer(gameScreen.player1, 'up');
+        },
+        S() {
+            if (gameMod["multiplayer"]) gameScreen.movePlayer(gameScreen.player2, 'down');
+            else gameScreen.movePlayer(gameScreen.player1, 'down');
+        },
+        ENTER() {
+            currentScreen = gameScreen;
+        },
+        ESCAPE() {
+            currentScreen = startScreen;
+            restartGame();
+        }
+    }
+    if (acceptedKeys[event.key.toUpperCase()]) {
+        let actionFunction = acceptedKeys[event.key.toUpperCase()];
+        actionFunction();
+    }
+}
+function touchHandler(event){
+    console.log(event);
+    currentScreen = gameScreen;
+    if (currentScreen == gameOverScreen){
+        restartGame();
+        currentScreen = startScreen;
+    }
+}
+function restartGame() {
+    physics.playersVelocityY = 20;
+    physics.ballVelocityX = 5;
+    physics.ballVelocityY = 0;
+    gameScreen.player1.x = canvas.width / 1.1;
+    gameScreen.player1.y = (canvas.height / 2) - (60 / 2);
+    gameScreen.player2.x = (canvas.width / 12) - (20 / 2);
+    gameScreen.player2.y = (canvas.height / 2) - (60 / 2);
+    gameScreen.ball.x = canvas.width / 2 - 15;
+    gameScreen.ball.y = canvas.height / 2 - 15;
+    gameScreen.pontuation.player1 = 0;
+    gameScreen.pontuation.player2 = 0;
+}
+if (window.matchMedia('(pointer: coarse)').matches) {
+    addInstructionImage();
+    addTouchListners();
+    changeInstructionsToATouchGame();
+    
+    function addInstructionImage(){
+        document.getElementById('img_instructions').src = 'mobile_tutorial.gif';
+    }
+    function changeInstructionsToATouchGame(){
+        startScreen.instruction.text = "clique em um modo de jogar";
+        gameOverScreen.returnInstruction = 'clique na seta para voltar';
+        gameOverScreen.drawExitButton = true;
+    }
+    function addTouchListners(){
+        const canvas = document.querySelector('canvas');
+        canvas.addEventListener('touchstart', (event) => touchHandler(event.touches));
+        canvas.addEventListener('touchmove', (event) => touchHandler(event.touches));
+        canvas.addEventListener('touchcancel', () => (console.clear()));
+    }
+} else {
+    window.addEventListener('keydown', keyBoardHandler);
+}
 gameLoop();
 ruffleBallInitialDirection();
 flashyText();
