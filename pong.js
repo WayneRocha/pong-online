@@ -5,8 +5,8 @@ const gameMod = {
     'multiplayer': false,
 };
 const physics = {
-    playersVelocityY: 20,
-    ballVelocityX: 5,
+    playersVelocityY: 8,
+    ballVelocityX: 7,
     ballVelocityY: 0,
 };
 const startScreen = {
@@ -235,12 +235,13 @@ const gameOverScreen = {
 };
 var currentScreen = startScreen;
 var selectedOption = 0;
+var KeyPressed;
 
 function gameLoop() {
     context.fillStyle = 'white';
     context.fillRect(0, 0, canvas.width, canvas.height);
+    keyBoardHandler(KeyPressed);
     currentScreen.draw();
-
     if (currentScreen == gameScreen) {
         document.querySelector('body').style.overflowY = 'hidden';
         gameScreen.moveBall();
@@ -278,9 +279,9 @@ function flashyText() {
     }, 500);
 }
 function ruffleBallInitialDirection() {
-    Math.floor(Math.random() * 2) ? physics.ballVelocityX *= -1 : physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+    !!Math.floor(Math.random() * 2) ? physics.ballVelocityX *= -1 : physics.ballVelocityX = Math.abs(physics.ballVelocityX);
 }
-function keyBoardHandler(event) {
+function keyBoardHandler(key) {
     const acceptedKeys = {
         ARROWUP() {
             gameScreen.movePlayer(gameScreen.player1, 'up');
@@ -314,8 +315,8 @@ function keyBoardHandler(event) {
             restartGame();
         }
     };
-    if (acceptedKeys[event.key.toUpperCase()]) {
-        let actionFunction = acceptedKeys[event.key.toUpperCase()];
+    if (acceptedKeys[key]) {
+        let actionFunction = acceptedKeys[key];
         actionFunction();
     }
     function updateSelectedOption(arrow){
@@ -334,6 +335,7 @@ function keyBoardHandler(event) {
     }
 }
 function touchHandler(event){
+    
 }
 function restartGame() {
     physics.playersVelocityY = 20;
@@ -368,7 +370,8 @@ if (window.matchMedia('(pointer: coarse)').matches) {
         canvas.addEventListener('touchcancel', () => document.querySelector('body').style.overflow = 'auto');
     }
 } else {
-    window.addEventListener('keydown', keyBoardHandler);
+    window.addEventListener('keyup', () => KeyPressed = undefined);
+    window.addEventListener('keydown', (event) => KeyPressed = event.key.toUpperCase());
 }
 gameLoop();
 ruffleBallInitialDirection();
