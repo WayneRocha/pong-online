@@ -1,7 +1,7 @@
 const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
 const gameMod = {
-    'single-player': true,
+    'singleplayer': true,
     'multiplayer': false,
 };
 const physics = {
@@ -16,17 +16,26 @@ const startScreen = {
         text: 'PONG',
         fontStyle: 'bold 50px monospace'
     },
-    options: {
-        x: (canvas.width / 2),
-        y: (canvas.height / 1.5),
-        text: 'single player',
-        fontStyle: '30px monospace',
-        letterColor: 'black'
-    },
+    options: [
+        {
+            x: (canvas.width / 2),
+            y: (canvas.height / 1.8),
+            text: 'single player',
+            fontStyle: '30px monospace',
+            letterColor: 'black'
+        },
+        {
+            x: (canvas.width / 2),
+            y: (canvas.height / 1.4),
+            text: 'multiplayer',
+            fontStyle: '30px monospace',
+            letterColor: 'black'
+        }
+    ],
     instruction: {
         x: (canvas.width / 2),
         y: (canvas.height / 1.1),
-        text: 'press ENTER',
+        text: 'escolha como quer jogar',
         fontStyle: '20px monospace'
     },
     draw() {
@@ -34,8 +43,10 @@ const startScreen = {
         context.fillStyle = 'black';
         drawTexts(this.title);
         drawTexts(this.instruction);
-        context.fillStyle = this.options.letterColor;
-        drawTexts(this.options);
+        context.fillStyle = this.options[0].letterColor;
+        drawTexts(this.options[0]);
+        context.fillStyle = this.options[1].letterColor;
+        drawTexts(this.options[1]);
 
         function drawTexts(textObject) {
             context.font = textObject.fontStyle
@@ -97,11 +108,19 @@ const gameScreen = {
             }
             if (this.player1 >= 10) {
                 currentScreen = gameOverScreen;
-                this.winnerPlayer = 'VOCÊ GANHOU!';
+                if (gameMod.singleplayer){
+                    this.winnerPlayer = 'VOCÊ GANHOU!';
+                } else {
+                    this.winnerPlayer = 'player 1 GANHOU!';
+                }
             }
             else if (this.player2 >= 10) {
                 currentScreen = gameOverScreen;
-                this.winnerPlayer = 'VOCÊ PERDEU!';
+                if (gameMod.singleplayer){
+                    this.winnerPlayer = 'VOCÊ PERDEU!';
+                } else {
+                    this.winnerPlayer = 'player 2 GANHOU!';
+                }
             }
             function player1Turn() {
                 physics.ballVelocityX *= -1;
@@ -122,6 +141,7 @@ const gameScreen = {
         this.drawScreenDivision();
         this.drawPlayers();
         this.drawBall();
+        this.drawNames();
         this.drawScoreBoard();
     },
     drawScreenDivision() {
@@ -140,6 +160,11 @@ const gameScreen = {
         context.font = '50px monospace';
         context.fillText(this.pontuation.player1, canvas.width / 1.5, 50);
         context.fillText(this.pontuation.player2, canvas.width / 3, 50);
+    },
+    drawNames(){
+        context.font = '20px monospace';
+        context.fillText('player 2', canvas.width / 6, 30);
+        context.fillText('player 1', canvas.width / 1.2, 30);
     },
     drawBall() {
         context.fillRect(this.ball.x, this.ball.y, this.ball.scale, this.ball.scale);
@@ -209,6 +234,8 @@ const gameOverScreen = {
     }
 };
 var currentScreen = startScreen;
+var selectedOption = 0;
+
 function gameLoop() {
     context.fillStyle = 'white';
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -218,7 +245,7 @@ function gameLoop() {
         document.querySelector('body').style.overflowY = 'hidden';
         gameScreen.moveBall();
         gameScreen.pontuation.pontuationDetection();
-        if (gameMod["single-player"]){
+        if (gameMod.singleplayer){
             gameScreen.player2.botPlayer();
         }
     }
@@ -226,22 +253,28 @@ function gameLoop() {
         gameOverScreen.draw();
     }
     else {
-        document.querySelector('body').style.overflowY = 'auto';
+        if (!(window.matchMedia('(pointer: coarse').matches)){
+            document.querySelector('body').style.overflowY = 'auto';
+        }
     }
     requestAnimationFrame(gameLoop);
 }
 function flashyText() {
     let count = 0;
-    let timer = setInterval(function () {
+    setInterval(function () {
         count++;
-        if (count % 2 === 1) {
-            startScreen.options.letterColor = 'white';
+        if (count % 2 === 1) {            
+            startScreen.options[selectedOption].letterColor = 'white';
+            if (startScreen.options[selectedOption - 1]){
+                startScreen.options[selectedOption - 1].letterColor = 'black';
+            } else {
+                startScreen.options[selectedOption + 1].letterColor = 'black';
+            }
             gameOverScreen.buttonColor = 'white';
         } else {
-            startScreen.options.letterColor = 'black';
+            startScreen.options[selectedOption].letterColor = 'black';
             gameOverScreen.buttonColor = 'black';
         }
-        if (currentScreen == gameScreen) clearInterval(timer);
     }, 500);
 }
 function ruffleBallInitialDirection() {
@@ -251,9 +284,11 @@ function keyBoardHandler(event) {
     const acceptedKeys = {
         ARROWUP() {
             gameScreen.movePlayer(gameScreen.player1, 'up');
+            updateSelectedOption('up');
         },
         ARROWDOWN() {
             gameScreen.movePlayer(gameScreen.player1, 'down');
+            updateSelectedOption('down');
         },
         W() {
             if (gameMod["multiplayer"]) {
@@ -261,13 +296,15 @@ function keyBoardHandler(event) {
             } else {
                 gameScreen.movePlayer(gameScreen.player1, 'up');
             }
+            updateSelectedOption('up');
         },
         S() {
             if (gameMod["multiplayer"]) {
                 gameScreen.movePlayer(gameScreen.player2, 'down');
             } else {
                 gameScreen.movePlayer(gameScreen.player1, 'down');
-            } 
+            }
+            updateSelectedOption('down');
         },
         ENTER() {
             currentScreen = gameScreen;
@@ -281,15 +318,22 @@ function keyBoardHandler(event) {
         let actionFunction = acceptedKeys[event.key.toUpperCase()];
         actionFunction();
     }
+    function updateSelectedOption(arrow){
+        if (currentScreen != startScreen) return;
+        if (arrow == 'up' && selectedOption == 1){
+            selectedOption = 0;
+            gameMod.singleplayer = true;
+            gameMod.multiplayer = false;
+            console.log('up: ' + selectedOption);
+        } else if (arrow == 'down' && selectedOption == 0){
+            selectedOption = 1;
+            gameMod.singleplayer = false;
+            gameMod.multiplayer = true;
+            console.log('down: ' + selectedOption);
+        }
+    }
 }
 function touchHandler(event){
-    console.log(event);
-    
-    /* currentScreen = gameScreen;
-    if (currentScreen == gameOverScreen){
-        restartGame();
-        currentScreen = startScreen;
-    } */
 }
 function restartGame() {
     physics.playersVelocityY = 20;
@@ -321,7 +365,7 @@ if (window.matchMedia('(pointer: coarse)').matches) {
         const canvas = document.querySelector('canvas');
         canvas.addEventListener('touchstart', (event) => touchHandler(event.touches));
         canvas.addEventListener('touchmove', (event) => touchHandler(event.touches));
-        canvas.addEventListener('touchcancel', () => (console.clear()));
+        canvas.addEventListener('touchcancel', () => document.querySelector('body').style.overflow = 'auto');
     }
 } else {
     window.addEventListener('keydown', keyBoardHandler);
