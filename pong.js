@@ -69,11 +69,11 @@ const gameScreen = {
         botPlayer() {
             let hitChange = 20;
             if (this.y > gameScreen.ball.y) {
-                if (Math.floor(Math.random() * 101) + hitChange >= 100){
+                if (Math.floor(Math.random() * 101) + hitChange >= 100) {
                     gameScreen.movePlayer(this, 'up');
                 }
             } else if (this.y + this.height < gameScreen.ball.y) {
-                if (Math.floor(Math.random() * 100) + hitChange >= 100){
+                if (Math.floor(Math.random() * 100) + hitChange >= 100) {
                     gameScreen.movePlayer(this, 'down');
                 }
             }
@@ -98,7 +98,7 @@ const gameScreen = {
             if (player1Point) {
                 resetPlayersPositions();
                 player1Turn();
-                if (gameMod.singleplayer){
+                if (gameMod.singleplayer) {
                     playSound('yourPoint');
                 } else {
                     playSound('point');
@@ -108,7 +108,7 @@ const gameScreen = {
             } else if (player2Point) {
                 resetPlayersPositions();
                 player2Turn();
-                if (gameMod.singleplayer){
+                if (gameMod.singleplayer) {
                     playSound('oponnentPoint');
                 } else {
                     playSound('point');
@@ -118,7 +118,7 @@ const gameScreen = {
             }
             if (this.player1 >= 10) {
                 currentScreen = gameOverScreen;
-                if (gameMod.singleplayer){
+                if (gameMod.singleplayer) {
                     this.winnerPlayer = 'VOCÊ GANHOU!';
                     playSound('win');
                 } else {
@@ -127,7 +127,7 @@ const gameScreen = {
             }
             else if (this.player2 >= 10) {
                 currentScreen = gameOverScreen;
-                if (gameMod.singleplayer){
+                if (gameMod.singleplayer) {
                     this.winnerPlayer = 'VOCÊ PERDEU!';
                     playSound('lose');
                 } else {
@@ -173,7 +173,7 @@ const gameScreen = {
         context.fillText(this.pontuation.player1, canvas.width / 1.5, 50);
         context.fillText(this.pontuation.player2, canvas.width / 3, 50);
     },
-    drawNames(){
+    drawNames() {
         context.font = '20px monospace';
         context.fillText('player 2', canvas.width / 6, 30);
         context.fillText('player 1', canvas.width / 1.2, 30);
@@ -184,7 +184,7 @@ const gameScreen = {
     movePlayer(player, direction) {
         if (direction == 'up' && player.y > 0) {
             player.y -= physics.playersVelocityY;
-        } 
+        }
         else if (direction == 'down' && (player.y + player.height) < canvas.height) {
             player.y += physics.playersVelocityY;
         }
@@ -195,7 +195,7 @@ const gameScreen = {
                 (this.ball.y) <= (this.player1.y + this.player1.height));
         let player2Colision = (this.ball.x <= (this.player2.x + this.player2.width) &&
             (this.ball.y + this.ball.scale) >= this.player2.y &&
-                this.ball.y <= (this.player2.y + this.player2.height));
+            this.ball.y <= (this.player2.y + this.player2.height));
         let buttomColision = (this.ball.y + this.ball.scale) >= canvas.height;
         let topColision = this.ball.y <= 0;
 
@@ -261,14 +261,14 @@ var selectedOption = 0;
 var KeyPressed;
 
 function gameLoop() {
+    keyBoardHandler(KeyPressed);
     context.fillStyle = 'white';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    keyBoardHandler(KeyPressed);
     currentScreen.draw();
     if (currentScreen == gameScreen) {
         gameScreen.moveBall();
         gameScreen.pontuation.pontuationDetection();
-        if (gameMod.singleplayer){
+        if (gameMod.singleplayer) {
             gameScreen.player2.botPlayer();
         }
     }
@@ -317,7 +317,7 @@ function keyBoardHandler(key) {
             updateSelectedOption('down');
         },
         ENTER() {
-            if (currentScreen == startScreen){
+            if (currentScreen == startScreen) {
                 playSound('start');
             }
             currentScreen = gameScreen;
@@ -332,14 +332,14 @@ function keyBoardHandler(key) {
         let actionFunction = acceptedKeys[key];
         actionFunction();
     }
-    function updateSelectedOption(arrow){
+    function updateSelectedOption(arrow) {
         if (currentScreen != startScreen) return;
-        if (arrow == 'up' && selectedOption == 1){
+        if (arrow == 'up' && selectedOption == 1) {
             playSound("menu");
             selectedOption = 0;
             gameMod.singleplayer = true;
             gameMod.multiplayer = false;
-        } else if (arrow == 'down' && selectedOption == 0){
+        } else if (arrow == 'down' && selectedOption == 0) {
             playSound("menu");
             selectedOption = 1;
             gameMod.singleplayer = false;
@@ -347,8 +347,15 @@ function keyBoardHandler(key) {
         }
     }
 }
-function touchHandler(event){
-    
+function touchHandler(event) {
+    let errorMarginX = innerWidth / 13
+    let errorMarginY = innerHeight / 9.3;
+    for (const evento of event) {
+        let x = Math.floor(evento.clientX - canvas.offsetLeft + errorMarginX);
+        let y = Math.floor(evento.clientY - canvas.offsetTop + errorMarginY);
+        
+        currentScreen = gameScreen;
+    }
 }
 function ruffleBallInitialDirection() {
     !!Math.floor(Math.random() * 2) ? physics.ballVelocityX *= -1 : physics.ballVelocityX = Math.abs(physics.ballVelocityX);
@@ -357,9 +364,9 @@ function flashyText() {
     let count = 0;
     setInterval(function () {
         count++;
-        if (count % 2 === 1) {            
+        if (count % 2 === 1) {
             startScreen.options[selectedOption].letterColor = 'white';
-            if (startScreen.options[selectedOption - 1]){
+            if (startScreen.options[selectedOption - 1]) {
                 startScreen.options[selectedOption - 1].letterColor = 'black';
             } else {
                 startScreen.options[selectedOption + 1].letterColor = 'black';
@@ -371,27 +378,40 @@ function flashyText() {
         }
     }, 500);
 }
-async function playSound(soundName, volume=0.3){
+async function playSound(soundName, volume = 0.3) {
     sounds[soundName].volume = volume;
     sounds[soundName].play();
 }
 if (window.matchMedia('(pointer: coarse)').matches) {
-    addInstructionImage();
     addTouchListners();
+    addFullScreenListner();
+    addInstructionImage();
     changeInstructionsToATouchGame();
-    
-    function addInstructionImage(){
+    increaseBallVelocity();
+
+    function addTouchListners() {
+        canvas.addEventListener('touchstart', (event) => touchHandler(event.touches));
+        canvas.addEventListener('touchmove', (event) => touchHandler(event.touches));
+    }
+    function addFullScreenListner(){
+        let isFull = false;
+        canvas.addEventListener('click', () => {
+            if (!isFull) try { document.documentElement.requestFullscreen(); } catch {}
+        });
+        canvas.addEventListener('blur', () => {
+            if (isFull) try { document.documentElement.exitFullscreen(); } catch {}
+        });
+    }
+    function addInstructionImage() {
         document.getElementById('img_instructions').src = 'mobile_tutorial.gif';
     }
-    function changeInstructionsToATouchGame(){
+    function changeInstructionsToATouchGame() {
         startScreen.instruction.text = "clique em um modo de jogar";
         gameOverScreen.returnInstruction = 'clique na seta para voltar';
         gameOverScreen.drawExitButton = true;
     }
-    function addTouchListners(){
-        const canvas = document.querySelector('canvas');
-        canvas.addEventListener('touchstart', (event) => touchHandler(event.touches));
-        canvas.addEventListener('touchmove', (event) => touchHandler(event.touches));
+    function increaseBallVelocity(){
+        physics.ballVelocityX += 2;
     }
 } else {
     window.addEventListener('keyup', () => KeyPressed = undefined);
