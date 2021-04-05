@@ -5,7 +5,7 @@ const gameMod = {
     'multiplayer': false,
 };
 const physics = {
-    playersVelocityY: 8,
+    playersVelocityY: 7,
     ballVelocityX: 7,
     ballVelocityY: 0,
 };
@@ -98,11 +98,21 @@ const gameScreen = {
             if (player1Point) {
                 resetPlayersPositions();
                 player1Turn();
+                if (gameMod.singleplayer){
+                    playSound('yourPoint');
+                } else {
+                    playSound('point');
+                }
                 this.player1 += 1;
                 gameScreen.ball.setBallToDefault();
             } else if (player2Point) {
                 resetPlayersPositions();
                 player2Turn();
+                if (gameMod.singleplayer){
+                    playSound('oponnentPoint');
+                } else {
+                    playSound('point');
+                }
                 this.player2 += 1;
                 gameScreen.ball.setBallToDefault();
             }
@@ -110,6 +120,7 @@ const gameScreen = {
                 currentScreen = gameOverScreen;
                 if (gameMod.singleplayer){
                     this.winnerPlayer = 'VOCÊ GANHOU!';
+                    playSound('win');
                 } else {
                     this.winnerPlayer = 'player 1 GANHOU!';
                 }
@@ -118,16 +129,17 @@ const gameScreen = {
                 currentScreen = gameOverScreen;
                 if (gameMod.singleplayer){
                     this.winnerPlayer = 'VOCÊ PERDEU!';
+                    playSound('lose');
                 } else {
                     this.winnerPlayer = 'player 2 GANHOU!';
                 }
             }
             function player1Turn() {
-                physics.ballVelocityX *= -1;
+                physics.ballVelocityX = Math.abs(physics.ballVelocityX);
                 physics.ballVelocityY = 0;
             }
             function player2Turn() {
-                physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+                physics.ballVelocityX *= -1;
                 physics.ballVelocityY = 0;
             }
             function resetPlayersPositions() {
@@ -188,9 +200,11 @@ const gameScreen = {
         let topColision = this.ball.y <= 0;
 
         if (player1Colision) {
+            playSound('menu', 0.1);
             physics.ballVelocityX *= -1;
             hitFactor();
         } else if (player2Colision) {
+            playSound('menu', 0.1);
             physics.ballVelocityX = Math.abs(physics.ballVelocityX);
             hitFactor();
         }
@@ -233,6 +247,15 @@ const gameOverScreen = {
         }
     }
 };
+const sounds = {
+    menu: new Audio('sfx/menu.wav'),
+    start: new Audio('sfx/start.wav'),
+    win: new Audio('sfx/win.wav'),
+    lose: new Audio('sfx/lose.wav'),
+    point: new Audio('sfx/point.wav'),
+    yourPoint: new Audio('sfx/point+.wav'),
+    oponnentPoint: new Audio('sfx/point-.wav'),
+};
 var currentScreen = startScreen;
 var selectedOption = 0;
 var KeyPressed;
@@ -243,7 +266,6 @@ function gameLoop() {
     keyBoardHandler(KeyPressed);
     currentScreen.draw();
     if (currentScreen == gameScreen) {
-        document.querySelector('body').style.overflowY = 'hidden';
         gameScreen.moveBall();
         gameScreen.pontuation.pontuationDetection();
         if (gameMod.singleplayer){
@@ -253,33 +275,20 @@ function gameLoop() {
     else if (currentScreen == gameOverScreen) {
         gameOverScreen.draw();
     }
-    else {
-        if (!(window.matchMedia('(pointer: coarse').matches)){
-            document.querySelector('body').style.overflowY = 'auto';
-        }
-    }
     requestAnimationFrame(gameLoop);
 }
-function flashyText() {
-    let count = 0;
-    setInterval(function () {
-        count++;
-        if (count % 2 === 1) {            
-            startScreen.options[selectedOption].letterColor = 'white';
-            if (startScreen.options[selectedOption - 1]){
-                startScreen.options[selectedOption - 1].letterColor = 'black';
-            } else {
-                startScreen.options[selectedOption + 1].letterColor = 'black';
-            }
-            gameOverScreen.buttonColor = 'white';
-        } else {
-            startScreen.options[selectedOption].letterColor = 'black';
-            gameOverScreen.buttonColor = 'black';
-        }
-    }, 500);
-}
-function ruffleBallInitialDirection() {
-    !!Math.floor(Math.random() * 2) ? physics.ballVelocityX *= -1 : physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+function restartGame() {
+    physics.playersVelocityY = 20;
+    physics.ballVelocityX = 5;
+    physics.ballVelocityY = 0;
+    gameScreen.player1.x = canvas.width / 1.1;
+    gameScreen.player1.y = (canvas.height / 2) - (60 / 2);
+    gameScreen.player2.x = (canvas.width / 12) - (20 / 2);
+    gameScreen.player2.y = (canvas.height / 2) - (60 / 2);
+    gameScreen.ball.x = canvas.width / 2 - 15;
+    gameScreen.ball.y = canvas.height / 2 - 15;
+    gameScreen.pontuation.player1 = 0;
+    gameScreen.pontuation.player2 = 0;
 }
 function keyBoardHandler(key) {
     const acceptedKeys = {
@@ -308,10 +317,14 @@ function keyBoardHandler(key) {
             updateSelectedOption('down');
         },
         ENTER() {
+            if (currentScreen == startScreen){
+                playSound('start');
+            }
             currentScreen = gameScreen;
         },
         ESCAPE() {
             currentScreen = startScreen;
+            playSound('menu');
             restartGame();
         }
     };
@@ -322,33 +335,45 @@ function keyBoardHandler(key) {
     function updateSelectedOption(arrow){
         if (currentScreen != startScreen) return;
         if (arrow == 'up' && selectedOption == 1){
+            playSound("menu");
             selectedOption = 0;
             gameMod.singleplayer = true;
             gameMod.multiplayer = false;
-            console.log('up: ' + selectedOption);
         } else if (arrow == 'down' && selectedOption == 0){
+            playSound("menu");
             selectedOption = 1;
             gameMod.singleplayer = false;
             gameMod.multiplayer = true;
-            console.log('down: ' + selectedOption);
         }
     }
 }
 function touchHandler(event){
     
 }
-function restartGame() {
-    physics.playersVelocityY = 20;
-    physics.ballVelocityX = 5;
-    physics.ballVelocityY = 0;
-    gameScreen.player1.x = canvas.width / 1.1;
-    gameScreen.player1.y = (canvas.height / 2) - (60 / 2);
-    gameScreen.player2.x = (canvas.width / 12) - (20 / 2);
-    gameScreen.player2.y = (canvas.height / 2) - (60 / 2);
-    gameScreen.ball.x = canvas.width / 2 - 15;
-    gameScreen.ball.y = canvas.height / 2 - 15;
-    gameScreen.pontuation.player1 = 0;
-    gameScreen.pontuation.player2 = 0;
+function ruffleBallInitialDirection() {
+    !!Math.floor(Math.random() * 2) ? physics.ballVelocityX *= -1 : physics.ballVelocityX = Math.abs(physics.ballVelocityX);
+}
+function flashyText() {
+    let count = 0;
+    setInterval(function () {
+        count++;
+        if (count % 2 === 1) {            
+            startScreen.options[selectedOption].letterColor = 'white';
+            if (startScreen.options[selectedOption - 1]){
+                startScreen.options[selectedOption - 1].letterColor = 'black';
+            } else {
+                startScreen.options[selectedOption + 1].letterColor = 'black';
+            }
+            gameOverScreen.buttonColor = 'white';
+        } else {
+            startScreen.options[selectedOption].letterColor = 'black';
+            gameOverScreen.buttonColor = 'black';
+        }
+    }, 500);
+}
+async function playSound(soundName, volume=0.3){
+    sounds[soundName].volume = volume;
+    sounds[soundName].play();
 }
 if (window.matchMedia('(pointer: coarse)').matches) {
     addInstructionImage();
@@ -367,7 +392,6 @@ if (window.matchMedia('(pointer: coarse)').matches) {
         const canvas = document.querySelector('canvas');
         canvas.addEventListener('touchstart', (event) => touchHandler(event.touches));
         canvas.addEventListener('touchmove', (event) => touchHandler(event.touches));
-        canvas.addEventListener('touchcancel', () => document.querySelector('body').style.overflow = 'auto');
     }
 } else {
     window.addEventListener('keyup', () => KeyPressed = undefined);
