@@ -66,14 +66,14 @@ const gameScreen = {
         y: (canvas.height / 2) - (60 / 2),
         width: 15,
         height: 60,
+        botHitChance: 20,
         botPlayer() {
-            let hitChange = 20;
             if (this.y > gameScreen.ball.y) {
-                if (Math.floor(Math.random() * 101) + hitChange >= 100) {
+                if (Math.floor(Math.random() * 101) + this.botHitChance >= 100) {
                     gameScreen.movePlayer(this, 'up');
                 }
             } else if (this.y + this.height < gameScreen.ball.y) {
-                if (Math.floor(Math.random() * 100) + hitChange >= 100) {
+                if (Math.floor(Math.random() * 100) + this.botHitChance >= 100) {
                     gameScreen.movePlayer(this, 'down');
                 }
             }
@@ -353,8 +353,41 @@ function touchHandler(event) {
     for (const evento of event) {
         let x = Math.floor(evento.clientX - canvas.offsetLeft + errorMarginX);
         let y = Math.floor(evento.clientY - canvas.offsetTop + errorMarginY);
-        
-        currentScreen = gameScreen;
+        if (currentScreen == startScreen) {
+            let singleplayerSelected = (x >= 200 && x <= 380) && (y >= 150 && y <= 175);
+            let multiplayerSelected = (x >= 200 && x <= 380) && (y >= 200 && y <= 225);
+            if (singleplayerSelected) {
+                gameMod.singleplayer = true;
+                gameMod.multiplayer = false;
+                gameScreen.player2.botHitChance = 40;
+                currentScreen = gameScreen;
+                playSound('start');
+            } else if (multiplayerSelected) {
+                gameMod.singleplayer = false;
+                gameMod.multiplayer = true;
+                currentScreen = gameScreen;
+                playSound('start');
+            }
+        } else if (currentScreen == gameScreen) {
+            if (gameMod.singleplayer){
+                if (y + gameScreen.player1.height / 2 > 0 && y + gameScreen.player1.height < canvas.height) {
+                    gameScreen.player1.y = y - gameScreen.player1.height;
+                }
+            } else {
+                if (x <= canvas.width / 2){
+                    
+                }
+            }
+        } else if (currentScreen == gameOverScreen) {
+            let comeBack = (x >= 240 && x <= 380) && (y >= 210 && y <= 240);
+            if (comeBack) {
+                currentScreen = startScreen;
+            }
+        }
+        console.clear()
+        console.log('x: ' + x);
+        console.log('y: ' + y);
+        //currentScreen = gameScreen;
     }
 }
 function ruffleBallInitialDirection() {
@@ -393,13 +426,13 @@ if (window.matchMedia('(pointer: coarse)').matches) {
         canvas.addEventListener('touchstart', (event) => touchHandler(event.touches));
         canvas.addEventListener('touchmove', (event) => touchHandler(event.touches));
     }
-    function addFullScreenListner(){
+    function addFullScreenListner() {
         let isFull = false;
         canvas.addEventListener('click', () => {
-            if (!isFull) try { document.documentElement.requestFullscreen(); } catch {}
+            if (!isFull) try { document.documentElement.requestFullscreen(); } catch { }
         });
         canvas.addEventListener('blur', () => {
-            if (isFull) try { document.documentElement.exitFullscreen(); } catch {}
+            if (isFull) try { document.documentElement.exitFullscreen(); } catch { }
         });
     }
     function addInstructionImage() {
@@ -410,8 +443,8 @@ if (window.matchMedia('(pointer: coarse)').matches) {
         gameOverScreen.returnInstruction = 'clique na seta para voltar';
         gameOverScreen.drawExitButton = true;
     }
-    function increaseBallVelocity(){
-        physics.ballVelocityX += 2;
+    function increaseBallVelocity() {
+        physics.ballVelocityX += 3;
     }
 } else {
     window.addEventListener('keyup', () => KeyPressed = undefined);
