@@ -278,8 +278,8 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 function restartGame() {
-    physics.playersVelocityY = 20;
-    physics.ballVelocityX = 5;
+    physics.playersVelocityY = 7;
+    physics.ballVelocityX = 7;
     physics.ballVelocityY = 0;
     gameScreen.player1.x = canvas.width / 1.1;
     gameScreen.player1.y = (canvas.height / 2) - (60 / 2);
