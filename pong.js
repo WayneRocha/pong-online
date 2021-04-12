@@ -436,7 +436,7 @@ if (window.matchMedia('(pointer: coarse)').matches) {
         });
     }
     function addInstructionImage() {
-        document.getElementById('img_instructions').src = 'mobile_tutorial.gif';
+        document.getElementById('img_instructions').src = 'img/mobile_tutorial.gif';
     }
     function changeInstructionsToATouchGame() {
         startScreen.instruction.text = "clique em um modo de jogar";
