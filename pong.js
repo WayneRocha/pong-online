@@ -120,10 +120,10 @@ const gameScreen = {
                 currentScreen = gameOverScreen;
                 if (gameMod.singleplayer) {
                     this.winnerPlayer = 'VOCÊ GANHOU!';
-                    playSound('win');
                 } else {
                     this.winnerPlayer = 'player 1 GANHOU!';
                 }
+                playSound('win');
             }
             else if (this.player2 >= 10) {
                 currentScreen = gameOverScreen;
