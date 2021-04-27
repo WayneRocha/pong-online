@@ -370,24 +370,27 @@ function touchHandler(event) {
             }
         } else if (currentScreen == gameScreen) {
             if (gameMod.singleplayer){
-                if (y + gameScreen.player1.height / 2 > 0 && y + gameScreen.player1.height < canvas.height) {
+                if (y - gameScreen.player1.height > 0 && y < canvas.height){
                     gameScreen.player1.y = y - gameScreen.player1.height;
                 }
             } else {
-                if (x <= canvas.width / 2){
-                    
+                if (x >= canvas.width / 2){
+                    if (y - gameScreen.player1.height > 0 && y < canvas.height){
+                        gameScreen.player1.y = y - gameScreen.player1.height;
+                    }
+                } else {
+                    if (y - gameScreen.player2.height > 0 && y < canvas.height){
+                        gameScreen.player2.y = y - gameScreen.player2.height;
+                    }
                 }
             }
         } else if (currentScreen == gameOverScreen) {
             let comeBack = (x >= 240 && x <= 380) && (y >= 210 && y <= 240);
             if (comeBack) {
+                restartGame();
                 currentScreen = startScreen;
             }
         }
-        console.clear()
-        console.log('x: ' + x);
-        console.log('y: ' + y);
-        //currentScreen = gameScreen;
     }
 }
 function ruffleBallInitialDirection() {
@@ -413,7 +416,11 @@ function flashyText() {
 }
 async function playSound(soundName, volume = 0.3) {
     sounds[soundName].volume = volume;
-    sounds[soundName].play();
+    try {
+        sounds[soundName].play();
+    } catch (DOMException){
+        return;
+    }
 }
 if (window.matchMedia('(pointer: coarse)').matches) {
     addTouchListners();
