@@ -2,9 +2,11 @@
 
 ## sobre
 
-Essa **cópia do jogo PONG** foi feita sem engines ou frameworks com o objetivo de treinar desenvolvimento Web
+Essa **cópia do jogo PONG** foi feita sem engines ou frameworks com o objetivo de treinar minhas habilidades em JavaScript
 
-Esse jogo pode ser jogado sozinho ou multiplayer local tanto no computador quanto em mobile
+Esse jogo pode ser jogado nos modos:
+- single-player
+- multiplayer local
 
 ## demonstração
 
